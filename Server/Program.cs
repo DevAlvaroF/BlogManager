@@ -4,18 +4,27 @@ using Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+	options.AddPolicy("CorsPolicy",
+		builder =>
+		builder
+		.AllowAnyOrigin()
+		.AllowAnyMethod()
+		.AllowAnyHeader());
+});
+
+
 builder.Services.AddDbContext<AppDBContext>(options =>
 {
 	options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
 	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Server", Version = "v1" });
 });
-
 
 // ================================================
 // Convert all API Uri to lower case
@@ -35,15 +44,26 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
 	app.UseDeveloperExceptionPage();
-	app.UseSwagger();
-	//app.UseSwaggerUI(c => c.SwaggerEndpoint);
 }
+app.UseSwagger();
+//app.UseSwaggerUI(c => c.SwaggerEndpoint);
+app.UseSwaggerUI(swaggerUIOptions =>
+{
+	swaggerUIOptions.SwaggerEndpoint("/swagger/v1/swagger.json", "JohnDoeServer API");
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseRouting();
+app.UseCors("CorsPolicy");
+
+app.UseAuthorization();
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+	endpoints.MapControllers();
+});
 
 app.Run();
