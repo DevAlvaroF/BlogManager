@@ -19,5 +19,8 @@ namespace Shared.Models
 		[Required]
 		[MaxLength(1024)] // words
 		public string Description { get; set; }
+
+
+		public List<Post> Posts { get; set; }
 	}
 }
