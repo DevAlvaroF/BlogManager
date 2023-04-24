@@ -54,6 +54,7 @@ app.UseSwaggerUI(swaggerUIOptions =>
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+
 app.UseRouting();
 app.UseCors("CustomCorsPolicy");
 
