@@ -188,7 +188,7 @@ namespace Server.Controllers
 				{
 					string fileName = categoryToDelete.ThumbnailImagePath.Split("/").Last();
 
-					System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwrooot\\uploads\\{fileName}");
+					System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwroot\\uploads\\{fileName}");
 				}
 
 				_appDBContext.Categories.Remove(categoryToDelete);
