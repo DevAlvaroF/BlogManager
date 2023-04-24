@@ -26,10 +26,11 @@ namespace Server.Data
 
 			for (int i = 1; i < 4; i++)
 			{
+
 				categoriesToSeed[i - 1] = new Category()
 				{
 					CategoryId = i,
-					ThumbnailImagePath = "uploads/placeholder.jpg",
+					ThumbnailImagePath = $"uploads/cat{i}.png",
 					Name = $"Category {i}",
 					Description = $"A description of category {i}",
 				};
