@@ -1,9 +1,5 @@
 ﻿@page "/admin/categories/create"
 @using System.Net;
-@inject HttpClient HttpClient
-@inject InMemoryDatabaseCache InMemoryDatabaseCache
-
-
 
 <main class="admin-area-main">
 	<Client.Components.Admin.Sidebar />
@@ -13,7 +9,7 @@
 			<div class="col">
 
 				<h1 class="mb-4">@(_createSuccessful ? "Success! Go back to all categories to see the created category." : "Create category")</h1>
-
+				
 				@if (_attemptingToCreate == true)
 				{
 					<h1>Creating category...</h1>
@@ -42,8 +38,8 @@
 							}
 							else
 							{
-								<img src="@($"{APIEndpoints.ServerBaseUrl}/{_categoryToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" alt="Post thumbnail image" />
-							}
+								<img src="@($"{APIEndpoints.ServerBaseUrl}/{_categoryToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" alt="Post thumbnail image" />								
+							}							
 
 							<br />
 
@@ -75,6 +71,8 @@
 
 @code
 {
+	[Inject] HttpClient HttpClient { get; set; }
+	[Inject] InMemoryDatabaseCache InMemoryDatabaseCache { get; set; }
 	private Category _categoryToCreate = new Category() { ThumbnailImagePath = "uploads/placeholder.jpg", Posts = new List<Post>() };
 	private bool _attemptingToCreate = false;
 	private bool _attemptToCreateFailed = false;
@@ -128,13 +126,13 @@
 			string byteString = Convert.ToBase64String(imageAsByteArray);
 
 			UploadedImage uploadedImage = new UploadedImage()
-				{
-					NewImageFileExtension = uploadedImageFile.Name.Substring(uploadedImageFile.Name.Length - 4),
-					NewImageBase64Content = byteString,
-					OldImagePath = string.Empty
-				};
+			{
+				NewImageFileExtension = uploadedImageFile.Name.Substring(uploadedImageFile.Name.Length - 4),
+				NewImageBase64Content = byteString,
+				OldImagePath = string.Empty
+			};
 
-			HttpResponseMessage response = await HttpClient.PostAsJsonAsync<UploadedImage>(APIEndpoints.s_imageUpload, uploadedImage);
+			HttpResponseMessage response = await HttpClient.PostAsJsonAsync<UploadedImage>(APIEndpoints.s_imageUpload, uploadedImage); 
 
 			if (response.StatusCode == HttpStatusCode.Created)
 			{
@@ -150,5 +148,4 @@
 		_attemptingToUploadImage = false;
 		StateHasChanged();
 	}
-
 }

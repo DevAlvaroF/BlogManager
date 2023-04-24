@@ -1,231 +1,239 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Shared.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Server.Controllers
 {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class PostsController : ControllerBase
-	{
-		private readonly AppDBContext _appDBContext;
+    [Route("api/[controller]")]
+    [ApiController]
+    public class PostsController : ControllerBase
+    {
+        private readonly AppDBContext _appDBContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IMapper _mapper;
 
-		private readonly IWebHostEnvironment _webHostEnvironment;
-		private readonly IMapper _mapper;
-		public PostsController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment, IMapper mapper)
-		{
-			_appDBContext = appDBContext;
-			_mapper = mapper;
-			_webHostEnvironment = webHostEnvironment;
-		}
-		#region Get Methods
+        public PostsController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment, IMapper mapper)
+        {
+            _appDBContext = appDBContext;
+            _webHostEnvironment = webHostEnvironment;
+            _mapper = mapper;
+        }
 
+        #region CRUD operations
 
-		[HttpGet]
-		public async Task<IActionResult> Get()
-		{
-			// Return Posts from database
-			List<Post> Posts = await _appDBContext.Posts.Include(post => post.Category).ToListAsync();
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            List<Post> posts = await _appDBContext.Posts
+                .Include(post => post.Category)
+                .ToListAsync();
 
-			return Ok(Posts);
-		}
+            return Ok(posts);
+        }
 
-		[HttpGet("dto/{id}")]
-		public async Task<IActionResult> GetDTO(int id)
-		{
-			Post post = await GetPostByPostId(id);
-			PostDTO postDTO = _mapper.Map<PostDTO>(post);
+        [HttpGet("dto/{id}")]
+        public async Task<IActionResult> GetDTO(int id)
+        {
+            Post post = await GetPostByPostId(id);
+            PostDTO postDTO = _mapper.Map<PostDTO>(post);
 
-			return Ok(postDTO);
-		}
+            return Ok(postDTO);
+        }
 
+        // website.com/api/posts/2
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            Post post = await GetPostByPostId(id);
 
-		[HttpGet("{id}")] // website.com/api/Posts/3
-		public async Task<IActionResult> Get(int id)
-		{
-			Post Post = await GetPostByPostId(id);
+            return Ok(post);
+        }
 
-			return Ok(Post);
-		}
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] PostDTO postToCreateDTO)
+        {
+            try
+            {
+                if (postToCreateDTO == null)
+                {
+                    return BadRequest(ModelState);
+                }
 
+                if (ModelState.IsValid == false)
+                {
+                    return BadRequest(ModelState);
+                }
 
-		#endregion
+                Post postToCreate = _mapper.Map<Post>(postToCreateDTO);
 
-		#region Utility Methods
+                if (postToCreate.Published == true)
+                {
+                    // European DateTime
+                    postToCreate.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyyy hh:mm");
+                }
 
-		[NonAction]
-		[ApiExplorerSettings(IgnoreApi = true)]
-		private async Task<bool> PersistChangesToDatabase()
-		{
-			int amountOfChanges = await _appDBContext.SaveChangesAsync();
+                await _appDBContext.Posts.AddAsync(postToCreate);
 
-			return amountOfChanges > 0;
-		}
+                bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-		[NonAction]
-		[ApiExplorerSettings(IgnoreApi = true)]
-		private async Task<Post> GetPostByPostId(int PostId)
-		{
-			Post PostToGet = await _appDBContext.Posts.Include(Post => Post.Category).FirstOrDefaultAsync(Post => Post.PostId == PostId);
+                if (changesPersistedToDatabase == false)
+                {
+                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+                }
+                else
+                {
+                    return Created("Create", postToCreate);
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+            }
+        }
 
-			return PostToGet;
-		}
-		#endregion
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] PostDTO updatedPostDTO)
+        {
+            try
+            {
+                if (id < 1 || updatedPostDTO == null || id != updatedPostDTO.PostId)
+                {
+                    return BadRequest(ModelState);
+                }
 
-		#region Post Methods
+                Post oldPost = await _appDBContext.Posts.FindAsync(id);
 
-		[HttpPost]
-		public async Task<IActionResult> Create([FromBody] PostDTO PostToCreateDTO)
-		{
-			try
-			{
-				if (PostToCreateDTO == null)
-				{
-					return BadRequest(ModelState);
+                if (oldPost == null)
+                {
+                    return NotFound();
+                }
 
-				}
-				if (ModelState.IsValid == false)
-				{
-					return BadRequest(ModelState);
-				}
+                if (ModelState.IsValid == false)
+                {
+                    return BadRequest(ModelState);
+                }
 
-				Post PostToCreate = _mapper.Map<Post>(PostToCreateDTO);
+                Post updatedPost = _mapper.Map<Post>(updatedPostDTO);
 
-				if (PostToCreate.Published == true)
-				{
-					// Add european date time
-					PostToCreate.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyy hh:mm");
-				}
+                if (updatedPost.Published == true)
+                {
+                    if (oldPost.Published == false)
+                    {
+                        updatedPost.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyyy hh:mm");
+                    }
+                    else
+                    {
+                        updatedPost.PublishDate = oldPost.PublishDate;
+                    }                    
+                }
+                else
+                {
+                    updatedPost.PublishDate = string.Empty;
+                }
 
-				await _appDBContext.Posts.AddAsync(PostToCreate);
+                // Detach oldPost from EF, else it can't be updated.
+                _appDBContext.Entry(oldPost).State = EntityState.Detached;
 
-				bool changersPersistedToDatabase = await PersistChangesToDatabase();
+                _appDBContext.Posts.Update(updatedPost);
 
-				if (changersPersistedToDatabase == false)
-				{
-					return StatusCode(500, $"Something went wrong on our side. Please contact the admin.");
-				}
+                bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-				return Created("Create", PostToCreate);
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, $"Something went wrong on our side. Please contact the admin and show him this\n{ex.Message}");
-			}
-		}
+                if (changesPersistedToDatabase == false)
+                {
+                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+                }
+                else
+                {
+                    return Created("Create", updatedPost);
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+            }
+        }
 
-		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(int id, [FromBody] PostDTO PostToUpdateDTO)
-		{
-			try
-			{
-				if (id < 1 || id != PostToUpdateDTO.PostId || PostToUpdateDTO == null)
-				{
-					return BadRequest(ModelState);
-				}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                if (id < 1)
+                {
+                    return BadRequest(ModelState);
+                }
 
-				Post? oldPost = await _appDBContext.Posts.FindAsync(id);
+                bool exists = await _appDBContext.Posts.AnyAsync(post => post.PostId == id);
 
-				if (oldPost == null)
-				{
-					return NotFound();
-				}
-				if (ModelState.IsValid == false)
-				{
-					return BadRequest(ModelState);
-				}
+                if (exists == false)
+                {
+                    return NotFound();
+                }
 
-				Post PostToUpdate = _mapper.Map<Post>(PostToUpdateDTO);
+                if (ModelState.IsValid == false)
+                {
+                    return BadRequest(ModelState);
+                }
 
-				if (PostToUpdate.Published == true)
-				{
-					if (oldPost.Published)
-					{
+                Post postToDelete = await GetPostByPostId(id);
 
-						PostToUpdate.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyy hh:mm");
-					}
-					else
-					{
-						PostToUpdate.PublishDate = oldPost.PublishDate;
-					}
+                if (postToDelete.ThumbnailImagePath != "uploads/placeholder.jpg")
+                {
+                    string fileName = postToDelete.ThumbnailImagePath.Split('/').Last();
 
-				}
-				else
-				{
-					PostToUpdate.PublishDate = string.Empty;
-				}
+                    System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwroot\\uploads\\{fileName}");
+                }
 
-				// Detach oldPost from EF, else if can't be updated
-				_appDBContext.Entry(oldPost).State = EntityState.Detached;
+                _appDBContext.Posts.Remove(postToDelete);
 
-				_appDBContext.Posts.Update(PostToUpdate);
+                bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-				bool changersPersistedToDatabase = await PersistChangesToDatabase();
+                if (changesPersistedToDatabase == false)
+                {
+                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+                }
+                else
+                {
+                    return NoContent();
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+            }
+        }
 
-				if (changersPersistedToDatabase == false)
-				{
-					return StatusCode(500, $"Something went wrong on our side. Please contact the admin.");
-				}
+        #endregion
 
-				return Created("Create", PostToUpdate);
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, $"Something went wrong on our side. Please contact the admin and show him this\n{ex.Message}");
-			}
-		}
+        #region Utility methods
 
+        [NonAction]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task<bool> PersistChangesToDatabase()
+        {
+            int amountOfChanges = await _appDBContext.SaveChangesAsync();
 
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> Delete(int id)
-		{
-			try
-			{
-				if (id < 1)
-				{
-					return BadRequest(ModelState);
-				}
+            return amountOfChanges > 0;
+        }
 
-				bool exists = await _appDBContext.Posts.AnyAsync(Post => Post.PostId == id);
+        [NonAction]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task<Post> GetPostByPostId(int postId)
+        {
+            Post postToGet = await _appDBContext.Posts
+                    .Include(post => post.Category)
+                    .FirstAsync(post => post.PostId == postId);
 
-				if (exists == false)
-				{
-					return NotFound();
-				}
+            return postToGet;
+        }
 
-				if (ModelState.IsValid == false)
-				{
-					return BadRequest(ModelState);
-				}
-
-				Post PostToDelete = await GetPostByPostId(id);
-
-				if (PostToDelete.ThumbnailImagePath != "uploads/placeholder.jpg")
-				{
-					string fileName = PostToDelete.ThumbnailImagePath.Split("/").Last();
-
-					System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwrooot\\uploads\\{fileName}");
-				}
-
-				_appDBContext.Posts.Remove(PostToDelete);
-
-				bool changersPersistedToDatabase = await PersistChangesToDatabase();
-
-				if (changersPersistedToDatabase == false)
-				{
-					return StatusCode(500, $"Something went wrong on our side. Please contact the admin.");
-				}
-
-				return NoContent();
-			}
-			catch (Exception ex)
-			{
-				return StatusCode(500, $"Something went wrong on our side. Please contact the admin and show him this\n{ex.Message}");
-			}
-		}
-
-		#endregion
-	}
+        #endregion
+    }
 }

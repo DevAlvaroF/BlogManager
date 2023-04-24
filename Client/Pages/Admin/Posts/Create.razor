@@ -1,11 +1,6 @@
 ﻿@page "/admin/posts/create"
 @using System.Net;
 
-@inject InMemoryDatabaseCache InMemoryDatabaseCache
-@inject IJSRuntime JSRuntime
-@inject HttpClient HttpClient
-
-
 <main class="admin-area-main">
 	<Client.Components.Admin.Sidebar />
 
@@ -111,7 +106,8 @@
 
 @code
 {
-
+	[Inject] InMemoryDatabaseCache InMemoryDatabaseCache { get; set; }
+	[Inject] IJSRuntime JSRuntime { get; set; }
 	private ElementReference _quillJSEditorDiv;
 	protected async override Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -127,7 +123,7 @@
 		}
 	}
 
-
+	[Inject] HttpClient HttpClient { get; set; }		
 	private PostDTO _postToCreate = new PostDTO() { ThumbnailImagePath = "uploads/placeholder.jpg" };
 	private bool _attemptingToCreate = false;
 	private bool _attemptToCreateFailed = false;
@@ -184,11 +180,11 @@
 			string byteString = Convert.ToBase64String(imageAsByteArray);
 
 			UploadedImage uploadedImage = new UploadedImage()
-				{
-					NewImageFileExtension = uploadedImageFile.Name.Substring(uploadedImageFile.Name.Length - 4),
-					NewImageBase64Content = byteString,
-					OldImagePath = string.Empty
-				};
+			{
+				NewImageFileExtension = uploadedImageFile.Name.Substring(uploadedImageFile.Name.Length - 4),
+				NewImageBase64Content = byteString,
+				OldImagePath = string.Empty
+			};
 
 			HttpResponseMessage response = await HttpClient.PostAsJsonAsync<UploadedImage>(APIEndpoints.s_imageUpload, uploadedImage);
 

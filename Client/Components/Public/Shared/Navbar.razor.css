@@ -14,8 +14,7 @@
     border-radius: 0px;
 }
 
-.nav-link:hover,
-.nav-link:focus {
+.nav-link:hover, .nav-link:focus {
     color: rgba(0, 0, 0, 0.85);
     border-bottom: 0.5rem solid transparent;
     border-bottom-color: rgba(0, 0, 0, 0.4);

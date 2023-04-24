@@ -8,6 +8,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Include="Components\Admin\Sidebar.razor" />
+	  <None Include="Components\Public\Blog\CategoryCard.razor" />
+	  <None Include="Components\Public\Portfolio\ExamplePortfolioProjectModalWindow.razor" />
+	  <None Include="Components\Public\Shared\Footer.razor" />
+	  <None Include="Components\Public\Shared\Navbar.razor" />
+	  <None Include="Components\Shared\LoadingDot.razor" />
+	  <None Include="Components\Shared\Toast.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.15" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.15" PrivateAssets="all" />
 	</ItemGroup>
