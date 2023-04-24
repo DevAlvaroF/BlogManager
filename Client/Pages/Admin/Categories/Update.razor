@@ -1,9 +1,5 @@
 ﻿@page "/admin/categories/update/{CategoryId:int}"
 @using System.Net;
-@inject HttpClient HttpClient
-@inject InMemoryDatabaseCache InMemoryDatabaseCache
-
-
 
 <main class="admin-area-main">
 	<Client.Components.Admin.Sidebar />
@@ -94,13 +90,14 @@
 @code
 {
 	[Parameter] public int CategoryId { get; set; }
-
+	[Inject] InMemoryDatabaseCache InMemoryDatabaseCache { get; set; }
 	private Category _categoryToUpdate = null;
 	protected async override Task OnParametersSetAsync()
 	{
-		_categoryToUpdate = await InMemoryDatabaseCache.GetCategoryByCategoryId(CategoryId);
+		_categoryToUpdate = await InMemoryDatabaseCache.GetCategoryByCategoryId(CategoryId, false);
 	}
 
+	[Inject] HttpClient HttpClient { get; set; }
 	private bool _attemptingToUpdate = false;
 	private bool _attemptToUpdateFailed = false;
 	private bool _updateSuccessful = false;
@@ -175,5 +172,4 @@
 		_attemptingToUploadImage = false;
 		StateHasChanged();
 	}
-
 }
