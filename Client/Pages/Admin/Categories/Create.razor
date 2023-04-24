@@ -1,7 +1,9 @@
 ﻿@page "/admin/categories/create"
 @using System.Net;
 
-<main class="admin-area-main">
+<AuthorizeView Roles="Administrator">
+	<Authorized Context="Auth">
+		<main class="admin-area-main">
 	<Client.Components.Admin.Sidebar />
 
 	<div class="admin-area-content container-fluid bg-white">
@@ -67,6 +69,13 @@
 		</div>
 	</div>
 </main>
+	</Authorized>
+	<NotAuthorized>
+		<Client.Components.Admin.SignIn />
+	</NotAuthorized>
+</AuthorizeView>
+
+
 
 
 @code

@@ -1,7 +1,9 @@
 ﻿@page "/admin/categories"
 @using System.Net
 
-<main class="admin-area-main">
+<AuthorizeView Roles="Administrator">
+	<Authorized Context="Auth">
+		<main class="admin-area-main">
 
 	<Client.Components.Admin.Sidebar />
 
@@ -104,6 +106,14 @@
 	</div>
 
 </main>
+	</Authorized>
+	<NotAuthorized>
+		<Client.Components.Admin.SignIn />
+	</NotAuthorized>
+</AuthorizeView>
+
+
+
 
 @implements IDisposable
 @code
