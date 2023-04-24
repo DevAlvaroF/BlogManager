@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Shared.Models;
@@ -12,10 +13,11 @@ namespace Server.Controllers
 		private readonly AppDBContext _appDBContext;
 
 		private readonly IWebHostEnvironment _webHostEnvironment;
-
-		public PostsController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment)
+		private readonly IMapper _mapper;
+		public PostsController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment, IMapper mapper)
 		{
 			_appDBContext = appDBContext;
+			_mapper = mapper;
 			_webHostEnvironment = webHostEnvironment;
 		}
 		#region Get Methods
@@ -66,11 +68,11 @@ namespace Server.Controllers
 		#region Post Methods
 
 		[HttpPost]
-		public async Task<IActionResult> Create([FromBody] Post PostToCreate)
+		public async Task<IActionResult> Create([FromBody] PostDTO PostToCreateDTO)
 		{
 			try
 			{
-				if (PostToCreate == null)
+				if (PostToCreateDTO == null)
 				{
 					return BadRequest(ModelState);
 
@@ -79,6 +81,9 @@ namespace Server.Controllers
 				{
 					return BadRequest(ModelState);
 				}
+
+				Post PostToCreate = _mapper.Map<Post>(PostToCreateDTO);
+
 				if (PostToCreate.Published == true)
 				{
 					// Add european date time
@@ -103,11 +108,11 @@ namespace Server.Controllers
 		}
 
 		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(int id, [FromBody] Post PostToUpdate)
+		public async Task<IActionResult> Update(int id, [FromBody] PostDTO PostToUpdateDTO)
 		{
 			try
 			{
-				if (id < 1 || id != PostToUpdate.PostId || PostToUpdate == null)
+				if (id < 1 || id != PostToUpdateDTO.PostId || PostToUpdateDTO == null)
 				{
 					return BadRequest(ModelState);
 				}
@@ -118,11 +123,29 @@ namespace Server.Controllers
 				{
 					return NotFound();
 				}
-
-				if (oldPost.Published == false && PostToUpdate.Published == true)
+				if (ModelState.IsValid == false)
 				{
+					return BadRequest(ModelState);
+				}
 
-					PostToUpdate.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyy hh:mm");
+				Post PostToUpdate = _mapper.Map<Post>(PostToUpdateDTO);
+
+				if (PostToUpdate.Published == true)
+				{
+					if (oldPost.Published)
+					{
+
+						PostToUpdate.PublishDate = DateTime.UtcNow.ToString("dd/MM/yyy hh:mm");
+					}
+					else
+					{
+						PostToUpdate.PublishDate = oldPost.PublishDate;
+					}
+
+				}
+				else
+				{
+					PostToUpdate.PublishDate = string.Empty;
 				}
 
 				// Detach oldPost from EF, else if can't be updated

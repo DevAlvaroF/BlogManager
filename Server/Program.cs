@@ -19,6 +19,8 @@ builder.Services.AddDbContext<AppDBContext>(options =>
 	options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+// to create automatic  mapping
+builder.Services.AddAutoMapper(typeof(DTOMappings));
 
 builder.Services.AddSwaggerGen(c =>
 {
