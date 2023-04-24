@@ -42,8 +42,6 @@
 							}
 							else
 							{
-
-
 								<img src="@($"{APIEndpoints.ServerBaseUrl}/{_categoryToCreate.ThumbnailImagePath}")" class="admin-crud-form-thumbnail-image" alt="Post thumbnail image" />
 							}
 
@@ -74,9 +72,9 @@
 	</div>
 </main>
 
+
 @code
 {
-
 	private Category _categoryToCreate = new Category() { ThumbnailImagePath = "uploads/placeholder.jpg", Posts = new List<Post>() };
 	private bool _attemptingToCreate = false;
 	private bool _attemptToCreateFailed = false;
@@ -101,6 +99,7 @@
 
 		_attemptingToCreate = false;
 	}
+
 	private bool _attemptingToUploadImage = false;
 	private bool _attemptToUploadFailed = false;
 	private string _reasonImageUploadFailed = null;
