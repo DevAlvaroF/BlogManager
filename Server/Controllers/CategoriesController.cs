@@ -1,227 +1,227 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Shared.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Server.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CategoriesController : ControllerBase
-    {
-        private readonly AppDBContext _appDBContext;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+	[Route("api/[controller]")]
+	[ApiController]
+	[Authorize(Roles = "Administrator")]
+	public class CategoriesController : ControllerBase
+	{
+		private readonly AppDBContext _appDBContext;
+		private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public CategoriesController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment)
-        {
-            _appDBContext = appDBContext;
-            _webHostEnvironment = webHostEnvironment;
-        }
+		public CategoriesController(AppDBContext appDBContext, IWebHostEnvironment webHostEnvironment)
+		{
+			_appDBContext = appDBContext;
+			_webHostEnvironment = webHostEnvironment;
+		}
 
-        #region CRUD operations
+		#region CRUD operations
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            List<Category> categories = await _appDBContext.Categories.ToListAsync();
+		[HttpGet]
+		[AllowAnonymous]
+		public async Task<IActionResult> Get()
+		{
+			List<Category> categories = await _appDBContext.Categories.ToListAsync();
 
-            return Ok(categories);
-        }
+			return Ok(categories);
+		}
 
-        
-        // website.com/api/categories/withposts
-        [HttpGet("withposts")]
-        public async Task<IActionResult> GetWithPosts()
-        {
-            List<Category> categories = await _appDBContext.Categories
-                .Include(category => category.Posts)
-                .ToListAsync();
 
-            return Ok(categories);
-        }
+		// website.com/api/categories/withposts
+		[HttpGet("withposts")]
+		[AllowAnonymous]
+		public async Task<IActionResult> GetWithPosts()
+		{
+			List<Category> categories = await _appDBContext.Categories
+				.Include(category => category.Posts)
+				.ToListAsync();
 
-        // website.com/api/categories/2
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
-        {
-            Category category = await GetCategoryByCategoryId(id, false);
+			return Ok(categories);
+		}
 
-            return Ok(category);
-        }
+		// website.com/api/categories/2
+		[HttpGet("{id}")]
+		[AllowAnonymous]
+		public async Task<IActionResult> Get(int id)
+		{
+			Category category = await GetCategoryByCategoryId(id, false);
 
-        // website.com/api/categories/2
-        [HttpGet("withposts/{id}")]
-        public async Task<IActionResult> GetWithPosts(int id)
-        {
-            Category category = await GetCategoryByCategoryId(id, true);
+			return Ok(category);
+		}
 
-            return Ok(category);
-        }
+		// website.com/api/categories/2
+		[HttpGet("withposts/{id}")]
+		public async Task<IActionResult> GetWithPosts(int id)
+		{
+			Category category = await GetCategoryByCategoryId(id, true);
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Category categoryToCreate)
-        {
-            try
-            {
-                if (categoryToCreate == null)
-                {
-                    return BadRequest(ModelState);
-                }
+			return Ok(category);
+		}
 
-                if (ModelState.IsValid == false)
-                {
-                    return BadRequest(ModelState);
-                }
+		[HttpPost]
+		public async Task<IActionResult> Create([FromBody] Category categoryToCreate)
+		{
+			try
+			{
+				if (categoryToCreate == null)
+				{
+					return BadRequest(ModelState);
+				}
 
-                await _appDBContext.Categories.AddAsync(categoryToCreate);
+				if (ModelState.IsValid == false)
+				{
+					return BadRequest(ModelState);
+				}
 
-                bool changesPersistedToDatabase = await PersistChangesToDatabase();
+				await _appDBContext.Categories.AddAsync(categoryToCreate);
 
-                if (changesPersistedToDatabase == false)
-                {
-                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
-                }
-                else
-                {
-                    return Created("Create", categoryToCreate);
-                }
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
-            }
-        }
+				bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Category updatedCategory)
-        {
-            try
-            {
-                if (id < 1 || updatedCategory == null || id != updatedCategory.CategoryId)
-                {
-                    return BadRequest(ModelState);
-                }
+				if (changesPersistedToDatabase == false)
+				{
+					return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+				}
+				else
+				{
+					return Created("Create", categoryToCreate);
+				}
+			}
+			catch (Exception e)
+			{
+				return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+			}
+		}
 
-                bool exists = await _appDBContext.Categories.AnyAsync(category => category.CategoryId == id);
+		[HttpPut("{id}")]
+		public async Task<IActionResult> Update(int id, [FromBody] Category updatedCategory)
+		{
+			try
+			{
+				if (id < 1 || updatedCategory == null || id != updatedCategory.CategoryId)
+				{
+					return BadRequest(ModelState);
+				}
 
-                if (exists == false)
-                {
-                    return NotFound();
-                }
+				bool exists = await _appDBContext.Categories.AnyAsync(category => category.CategoryId == id);
 
-                if (ModelState.IsValid == false)
-                {
-                    return BadRequest(ModelState);
-                }
+				if (exists == false)
+				{
+					return NotFound();
+				}
 
-                _appDBContext.Categories.Update(updatedCategory);
+				if (ModelState.IsValid == false)
+				{
+					return BadRequest(ModelState);
+				}
 
-                bool changesPersistedToDatabase = await PersistChangesToDatabase();
+				_appDBContext.Categories.Update(updatedCategory);
 
-                if (changesPersistedToDatabase == false)
-                {
-                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
-                }
-                else
-                {
-                    return NoContent();
-                }
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
-            }
-        }
+				bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                if (id < 1)
-                {
-                    return BadRequest(ModelState);
-                }
+				if (changesPersistedToDatabase == false)
+				{
+					return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+				}
+				else
+				{
+					return NoContent();
+				}
+			}
+			catch (Exception e)
+			{
+				return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+			}
+		}
 
-                bool exists = await _appDBContext.Categories.AnyAsync(category => category.CategoryId == id);
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> Delete(int id)
+		{
+			try
+			{
+				if (id < 1)
+				{
+					return BadRequest(ModelState);
+				}
 
-                if (exists == false)
-                {
-                    return NotFound();
-                }
+				bool exists = await _appDBContext.Categories.AnyAsync(category => category.CategoryId == id);
 
-                if (ModelState.IsValid == false)
-                {
-                    return BadRequest(ModelState);
-                }
+				if (exists == false)
+				{
+					return NotFound();
+				}
 
-                Category categoryToDelete = await GetCategoryByCategoryId(id, false);
+				if (ModelState.IsValid == false)
+				{
+					return BadRequest(ModelState);
+				}
 
-                if (categoryToDelete.ThumbnailImagePath != "uploads/placeholder.jpg")
-                {
-                    string fileName = categoryToDelete.ThumbnailImagePath.Split('/').Last();
+				Category categoryToDelete = await GetCategoryByCategoryId(id, false);
 
-                    System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwroot\\uploads\\{fileName}");
-                }
+				if (categoryToDelete.ThumbnailImagePath != "uploads/placeholder.jpg")
+				{
+					string fileName = categoryToDelete.ThumbnailImagePath.Split('/').Last();
 
-                _appDBContext.Categories.Remove(categoryToDelete);
+					System.IO.File.Delete($"{_webHostEnvironment.ContentRootPath}\\wwwroot\\uploads\\{fileName}");
+				}
 
-                bool changesPersistedToDatabase = await PersistChangesToDatabase();
+				_appDBContext.Categories.Remove(categoryToDelete);
 
-                if (changesPersistedToDatabase == false)
-                {
-                    return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
-                }
-                else
-                {
-                    return NoContent();
-                }
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
-            }
-        }
+				bool changesPersistedToDatabase = await PersistChangesToDatabase();
 
-        #endregion
+				if (changesPersistedToDatabase == false)
+				{
+					return StatusCode(500, "Something went wrong on our side. Please contact the administrator.");
+				}
+				else
+				{
+					return NoContent();
+				}
+			}
+			catch (Exception e)
+			{
+				return StatusCode(500, $"Something went wrong on our side. Please contact the administrator. Error message: {e.Message}.");
+			}
+		}
 
-        #region Utility methods
+		#endregion
 
-        [NonAction]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        private async Task<bool> PersistChangesToDatabase()
-        {
-            int amountOfChanges = await _appDBContext.SaveChangesAsync();
+		#region Utility methods
 
-            return amountOfChanges > 0;
-        }
+		[NonAction]
+		[ApiExplorerSettings(IgnoreApi = true)]
+		private async Task<bool> PersistChangesToDatabase()
+		{
+			int amountOfChanges = await _appDBContext.SaveChangesAsync();
 
-        [NonAction]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        private async Task<Category> GetCategoryByCategoryId(int categoryId, bool withPosts)
-        {
-            Category categoryToGet = null;
+			return amountOfChanges > 0;
+		}
 
-            if (withPosts == true)
-            {
-                categoryToGet = await _appDBContext.Categories
-                    .Include(category => category.Posts)
-                    .FirstAsync(category => category.CategoryId == categoryId);
-            }
-            else
-            {
-                categoryToGet = await _appDBContext.Categories
-                    .FirstAsync(category => category.CategoryId == categoryId);
-            }
+		[NonAction]
+		[ApiExplorerSettings(IgnoreApi = true)]
+		private async Task<Category> GetCategoryByCategoryId(int categoryId, bool withPosts)
+		{
+			Category categoryToGet = null;
 
-            return categoryToGet;
-        }
+			if (withPosts == true)
+			{
+				categoryToGet = await _appDBContext.Categories
+					.Include(category => category.Posts)
+					.FirstAsync(category => category.CategoryId == categoryId);
+			}
+			else
+			{
+				categoryToGet = await _appDBContext.Categories
+					.FirstAsync(category => category.CategoryId == categoryId);
+			}
 
-        #endregion
-    }
+			return categoryToGet;
+		}
+
+		#endregion
+	}
 }
