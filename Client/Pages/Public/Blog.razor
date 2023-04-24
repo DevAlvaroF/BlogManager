@@ -1,7 +1,7 @@
 ﻿@page "/blog"
 @using Client.Components.Public.Blog
 @inject InMemoryDatabaseCache InMemoryDatabaseCache
-@implements IAsyncDisposable
+@implements IDisposable
 
 <Client.Components.Public.Shared.Navbar />
 
@@ -53,9 +53,6 @@
 		InMemoryDatabaseCache.OnCategoriesDataChanged -= StateHasChanged;
 	}
 
-	public ValueTask DisposeAsync()
-	{
-		return new ValueTask() { };
-	}
+
 
 }
