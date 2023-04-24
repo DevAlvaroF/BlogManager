@@ -45,10 +45,10 @@ if (app.Environment.IsDevelopment())
 	app.UseDeveloperExceptionPage();
 }
 app.UseSwagger();
-//app.UseSwaggerUI(c => c.SwaggerEndpoint);
+
 app.UseSwaggerUI(swaggerUIOptions =>
 {
-	swaggerUIOptions.SwaggerEndpoint("/swagger/v1/swagger.json", "JohnDoeServer API");
+	swaggerUIOptions.SwaggerEndpoint("/swagger/v1/swagger.json", "AlvaroDev API");
 });
 
 app.UseHttpsRedirection();
