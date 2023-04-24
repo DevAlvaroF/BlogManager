@@ -1,5 +1,7 @@
 ﻿@page "/blog"
 @using Client.Components.Public.Blog
+@inject InMemoryDatabaseCache InMemoryDatabaseCache
+@implements IAsyncDisposable
 
 <Client.Components.Public.Shared.Navbar />
 
@@ -10,24 +12,50 @@
 			<p>Click a category card to view the blog posts</p>
 			<div class="row">
 
-				@*Card 1*@
-				<div class="col-md-4">
-					<CategoryCard />
-				</div>
+				@if (InMemoryDatabaseCache.Categories != null)
+				{
+					for (int i = 0; i < InMemoryDatabaseCache.Categories.Count; i++)
+					{
+						@*Card 1*@
+						<div class="col-md-4">
+							<CategoryCard Category="InMemoryDatabaseCache.Categories[i]" />
+						</div>
+					}
+				}
 
 
-				@*Card 2*@
-				<div class="col-md-4">
-					<CategoryCard />
-				</div>
-
-				@*Card 3*@
-				<div class="col-md-4">
-					<CategoryCard />
-				</div>
 			</div>
 		</div>
 	</div>
 </main>
 
 <Client.Components.Public.Shared.Footer />
+
+@code {
+
+	// =================================================================
+	// Subscribe on initialization to Database change notification
+	// =================================================================
+	protected override async Task OnInitializedAsync()
+	{
+		// Add event
+		InMemoryDatabaseCache.OnCategoriesDataChanged += StateHasChanged;
+
+		if (InMemoryDatabaseCache.Categories == null)
+		{
+			await InMemoryDatabaseCache.GetCategoriesFromDatabaseAndCache();
+		}
+	}
+
+	// Unsubscribe on event dispose
+	public void Dispose()
+	{
+		InMemoryDatabaseCache.OnCategoriesDataChanged -= StateHasChanged;
+	}
+
+	public ValueTask DisposeAsync()
+	{
+		return new ValueTask() { };
+	}
+
+}
