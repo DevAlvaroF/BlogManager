@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Shared.Models.CustomValidations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Shared.Models
 {
@@ -10,6 +11,8 @@ namespace Shared.Models
 
 		[Required]
 		[MaxLength(128)]
+		[NoPeriods(ErrorMessage = "The post title field contains one or more period characters, please fix it")]
+		[NoThreeOrMoreSpacesInARow(ErrorMessage = "The post title field contains three or more spaces in a row, please fix it")]
 		public string Title { get; set; }
 
 

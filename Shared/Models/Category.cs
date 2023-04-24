@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Shared.Models.CustomValidations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Shared.Models
 {
@@ -14,6 +15,8 @@ namespace Shared.Models
 
 		[Required]
 		[MaxLength(128)] // words
+		[NoPeriods(ErrorMessage = "The category Name field contains one or more period characters. Please remove them")]
+		[NoThreeOrMoreSpacesInARow(ErrorMessage = "Category name field has three or more spaces in a row, please fix it.")]
 		public string Name { get; set; }
 
 		[Required]
