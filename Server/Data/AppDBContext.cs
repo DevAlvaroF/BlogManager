@@ -23,7 +23,8 @@ namespace Server.Data
 			// Add seed Data for Categories
 			// ======================================
 			Category[] categoriesToSeed = new Category[3];
-
+			string[] categoryNames = new string[] { "Frameworks", "Web Security", "Game Development" };
+			string[] categoryDescriptions = new string[] { "A category with posts on the most recent frameworks", "All about web security and its implementation", "Godot? Unity? There's all of it in this category" };
 			for (int i = 1; i < 4; i++)
 			{
 
@@ -31,8 +32,8 @@ namespace Server.Data
 				{
 					CategoryId = i,
 					ThumbnailImagePath = $"uploads/cat{i}.png",
-					Name = $"Category {i}",
-					Description = $"A description of category {i}",
+					Name = categoryNames[i - 1],
+					Description = categoryDescriptions[i - 1],
 				};
 			}
 
@@ -93,13 +94,13 @@ namespace Server.Data
 				postsToSeed[i - 1] = new Post
 				{
 					PostId = i,
-					ThumbnailImagePath = "uploads/placeholder.jpg",
+					ThumbnailImagePath = "uploads/placeholder.png",
 					Title = postTitle,
 					Excerpt = $"This is the excerpt for post {i}. An excerpt is a little extraction from a larger piece of text. Sort of like a preview.",
-					Content = string.Empty,
+					Content = $"{{\"ops\":[{{\"insert\":\"Nescio quo modo praetervolavit oratio.\"}},{{\"attributes\":{{\"header\":1}},\"insert\":\"\\n\"}},{{\"insert\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Possumusne ergo in vita summum bonum dicere, cum id ne in cena quidem posse videamur? Aut, Pylades cum sis, dices te esse Orestem, ut moriare pro amico? Aufert enim sensus actionemque tollit omnem. Te ipsum, dignissimum maioribus tuis, voluptasne induxit, ut adolescentulus eriperes P. Nihil enim hoc differt. Duo Reges: constructio interrete. \"}},{{\"attributes\":{{\"link\":\"http://loripsum.net/\"}},\"insert\":\"At, si voluptas esset bonum, desideraret.\"}},{{\"insert\":\" Quicquid porro animo cernimus, id omne oritur a sensibus;\\nUt proverbia non nulla veriora sint quam vestra dogmata.\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Quam illa ardentis amores excitaret sui! Cur tandem?\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Hoc etsi multimodis reprehendi potest, tamen accipio, quod dant.\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Quid igitur dubitamus in tota eius natura quaerere quid sit effectum?\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Nam si propter voluptatem, quae est ista laus, quae possit e macello peti?\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Deinde prima illa, quae in congressu solemus: Quid tu, inquit, huc?\"}},{{\"attributes\":{{\"list\":\"ordered\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Ne amores quidem sanctos a sapiente alienos esse arbitrantur.\"}},{{\"attributes\":{{\"header\":2}},\"insert\":\"\\n\"}},{{\"attributes\":{{\"link\":\"http://loripsum.net/\"}},\"insert\":\"Pauca mutat vel plura sane;\"}},{{\"insert\":\" Polycratem Samium felicem appellabant. Polemoni et iam ante Aristoteli ea prima visa sunt, quae paulo ante dixi. Ut proverbia non nulla veriora sint quam vestra dogmata. Quamquam in hac divisione rem ipsam prorsus probo, elegantiam desidero. Quamvis enim depravatae non sint, pravae tamen esse possunt. \"}},{{\"attributes\":{{\"italic\":true}},\"insert\":\"Ita credo.\"}},{{\"insert\":\" \"}},{{\"attributes\":{{\"code\":true}},\"insert\":\"Bork\"}},{{\"insert\":\" Quasi ego id curem, quid ille aiat aut neget. Sin autem est in ea, quod quidam volunt, nihil impedit hanc nostram comprehensionem summi boni.\\nRatio ista, quam defendis, praecepta, quae didicisti, quae probas, funditus evertunt amicitiam, quamvis eam Epicurus, ut facit, in caelum efferat laudibus.\"}},{{\"attributes\":{{\"blockquote\":true}},\"insert\":\"\\n\"}},{{\"insert\":\"Nemo enim est, qui aliter dixerit quin omnium naturarum\"}},{{\"attributes\":{{\"code-block\":true}},\"insert\":\"\\n\"}},{{\"insert\":\"simile esset id, ad quod omnia referrentur, quod est ultimum\"}},{{\"attributes\":{{\"code-block\":true}},\"insert\":\"\\n\"}},{{\"insert\":\"rerum appetendarum.\"}},{{\"attributes\":{{\"code-block\":true}},\"insert\":\"\\n\\n\"}},{{\"insert\":\"Nam, ut saepe iam dixi, in infirma aetate inbecillaque mente\"}},{{\"attributes\":{{\"code-block\":true}},\"insert\":\"\\n\"}},{{\"insert\":\"vis naturae quasi per caliginem cernitur;\"}},{{\"attributes\":{{\"code-block\":true}},\"insert\":\"\\n\"}},{{\"insert\":\"Ita credo.\\nNam memini etiam quae nolo, oblivisci non possum quae volo.\\nBork\\nSed tu istuc dixti bene Latine, parum plane.\\nHic ambiguo ludimur.\\nAt quicum ioca seria, ut dicitur, quicum arcana, quicum occulta omnia?\\nBork\\nIta ceterorum sententiis semotis relinquitur non mihi cum Torquato, sed virtuti cum voluptate certatio.\\nRes enim concurrent contrariae.\\nFortasse id optimum, sed ubi illud: Plus semper voluptatis?\\nBork\\nScaevola tribunus plebis ferret ad plebem vellentne de ea re quaeri.\\nSed ea mala virtuti magnitudine obruebantur. Aeque enim contingit omnibus fidibus, ut incontentae sint. \"}},{{\"attributes\":{{\"code\":true}},\"insert\":\"Diodorus, eius auditor, adiungit ad honestatem vacuitatem doloris.\"}},{{\"insert\":\" \"}},{{\"attributes\":{{\"link\":\"http://loripsum.net/\"}},\"insert\":\"Ne discipulum abducam, times.\"}},{{\"insert\":\" \"}},{{\"attributes\":{{\"link\":\"http://loripsum.net/\"}},\"insert\":\"Tecum optime, deinde etiam cum mediocri amico.\"}},{{\"insert\":\" Tu enim ista lenius, hic Stoicorum more nos vexat. Primum in nostrane potestate est, quid meminerimus? Varietates autem iniurasque fortunae facile veteres philosophorum praeceptis instituta vita superabat.\\nQuid ergo aliud intellegetur nisi uti ne quae pars naturae neglegatur?\"}},{{\"attributes\":{{\"list\":\"bullet\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Quis est, qui non oderit libidinosam, protervam adolescentiam?\"}},{{\"attributes\":{{\"list\":\"bullet\"}},\"insert\":\"\\n\"}},{{\"insert\":\"Ut aliquid scire se gaudeant?\"}},{{\"attributes\":{{\"list\":\"bullet\"}},\"insert\":\"\\n\"}},{{\"insert\":\"\\n\"}}]}}",
 					PublishDate = DateTime.UtcNow.ToString("dd/MM/yyyy hh:mm"),
 					Published = true,
-					Author = "John Doe",
+					Author = "AlvaroF",
 					CategoryId = categoryId
 				};
 			}
